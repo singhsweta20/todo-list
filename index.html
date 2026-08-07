@@ -1,17 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>To-Do List</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Dashboard</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- CSS Link -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>My To-Do List</h1>
-    <input type="text" id="taskInput" placeholder="Add a new task...">
-    <button onclick="addTask()">Add</button>
-    <ul id="taskList"></ul>
+
+  <div class="app-card">
+    <div class="header">
+      <div class="header-title">
+        <h1>My Tasks</h1>
+        <span class="badge" id="taskCount">0 tasks</span>
+      </div>
+      <p>Organize your day with style</p>
+    </div>
+
+    <div class="input-wrapper">
+      <input type="text" id="taskInput" placeholder="Add a new task..." autocomplete="off" />
+      <button id="addBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Add</span>
+      </button>
+    </div>
+
+    <ul class="task-list" id="taskList">
+      <!-- Dynamic Tasks Will Appear Here -->
+    </ul>
+
+    <div class="empty-state" id="emptyState">
+      <div class="icon">✨</div>
+      <p>No tasks yet! Add one above to get started.</p>
+    </div>
   </div>
+
+  <!-- JavaScript Link -->
   <script src="script.js"></script>
 </body>
 </html>
