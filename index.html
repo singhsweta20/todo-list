@@ -1,89 +1,95 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const taskInput = document.getElementById('taskInput');
-  const addBtn = document.getElementById('addBtn');
-  const taskList = document.getElementById('taskList');
-  const emptyState = document.getElementById('emptyState');
-  const taskCount = document.getElementById('taskCount');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow Pro — Production Grade Task Manager</title>
+  
+  <!-- Modern Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  // Load saved tasks from LocalStorage
-  let tasks = JSON.parse(localStorage.getItem('my_todo_tasks')) || [];
+  <!-- External CSS File Link -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="dark">
 
-  function saveTasks() {
-    localStorage.setItem('my_todo_tasks', JSON.stringify(tasks));
-  }
+  <div class="container">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-check-double"></i></div>
+        <h1>TaskFlow Pro</h1>
+      </div>
+      <button class="theme-toggle" id="themeBtn" title="Toggle Theme">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+    </div>
 
-  function updateUI() {
-    taskList.innerHTML = '';
-    
-    if (tasks.length === 0) {
-      emptyState.style.display = 'block';
-    } else {
-      emptyState.style.display = 'none';
-      
-      tasks.forEach((task, index) => {
-        const li = document.createElement('li');
-        li.className = `task-item ${task.completed ? 'completed' : ''}`;
-        
-        li.innerHTML = `
-          <div class="task-content">
-            <div class="custom-checkbox"></div>
-            <span class="task-text">${escapeHtml(task.text)}</span>
-          </div>
-          <button class="delete-btn" title="Delete Task">✕</button>
-        `;
+    <!-- Progress Card -->
+    <div class="progress-card">
+      <div class="progress-header">
+        <span>Completion Progress</span>
+        <span id="progressText">0% Completed</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+    </div>
 
-        // Toggle task completion
-        li.querySelector('.task-content').addEventListener('click', () => {
-          tasks[index].completed = !tasks[index].completed;
-          saveTasks();
-          updateUI();
-        });
+    <!-- New Task Form -->
+    <div class="task-form">
+      <div class="input-group">
+        <input type="text" id="taskInput" placeholder="Add a title for your task..." autocomplete="off" />
+        <button class="add-btn" id="addBtn">
+          <i class="fa-solid fa-plus"></i> Add
+        </button>
+      </div>
 
-        // Delete task with animation
-        li.querySelector('.delete-btn').addEventListener('click', (e) => {
-          e.stopPropagation();
-          li.style.opacity = '0';
-          li.style.transform = 'translateY(10px)';
-          setTimeout(() => {
-            tasks.splice(index, 1);
-            saveTasks();
-            updateUI();
-          }, 200);
-        });
+      <div class="options-row">
+        <select id="categoryInput" class="custom-select">
+          <option value="Work">💼 Work</option>
+          <option value="Personal">👤 Personal</option>
+          <option value="Urgent">🔥 Urgent</option>
+        </select>
 
-        taskList.appendChild(li);
-      });
-    }
+        <select id="priorityInput" class="custom-select">
+          <option value="low">🟢 Low Priority</option>
+          <option value="medium" selected>🟡 Medium Priority</option>
+          <option value="high">🔴 High Priority</option>
+        </select>
+      </div>
+    </div>
 
-    // Update remaining task counter
-    const activeCount = tasks.filter(t => !t.completed).length;
-    taskCount.textContent = `${activeCount} ${activeCount === 1 ? 'task' : 'tasks'}`;
-  }
+    <!-- Toolbar: Search & Filter Tabs -->
+    <div class="toolbar">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Search tasks..." />
+      </div>
 
-  function addTask() {
-    const text = taskInput.value.trim();
-    if (!text) return;
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">All</button>
+        <button class="filter-tab" data-filter="active">Active</button>
+        <button class="filter-tab" data-filter="completed">Done</button>
+      </div>
+    </div>
 
-    tasks.push({ text: text, completed: false });
-    saveTasks();
-    updateUI();
-    taskInput.value = '';
-    taskInput.focus();
-  }
+    <!-- Dynamic Tasks List -->
+    <ul class="task-list" id="taskList"></ul>
 
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.innerText = text;
-    return div.innerHTML;
-  }
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <i class="fa-solid fa-clipboard-list"></i>
+      <p>No tasks found. Create a new task to get started!</p>
+    </div>
+  </div>
 
-  // Event Listeners
-  addBtn.addEventListener('click', addTask);
+  <!-- External JS File Link -->
+  <script src="script.js"></script>
+</body>
+</html>
 
-  taskInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addTask();
-  });
-
-  // Initial UI Render
-  updateUI();
-});
+  
