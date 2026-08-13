@@ -1,129 +1,204 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const taskInput = document.getElementById('taskInput');
-  const categorySelect = document.getElementById('categorySelect');
-  const prioritySelect = document.getElementById('prioritySelect');
-  const addBtn = document.getElementById('addBtn');
-  const taskList = document.getElementById('taskList');
-  const emptyState = document.getElementById('emptyState');
-  const progressBar = document.getElementById('progressBar');
-  const progressPercent = document.getElementById('progressPercent');
-  const searchInput = document.getElementById('searchInput');
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  const themeToggleBtn = document.getElementById('themeToggleBtn');
+    // DOM Elements
+    const todoForm = document.getElementById('todoForm');
+    const taskInput = document.getElementById('taskInput');
+    const categorySelect = document.getElementById('categorySelect');
+    const prioritySelect = document.getElementById('prioritySelect');
+    const tasksContainer = document.getElementById('tasksContainer');
+    const searchInput = document.getElementById('searchInput');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    
+    // Stats Elements
+    const progressText = document.getElementById('progressText');
+    const percentBadge = document.getElementById('percentBadge');
+    const progressBarFill = document.getElementById('progressBarFill');
 
-  let tasks = JSON.parse(localStorage.getItem('taskflow_tasks')) || [];
-  let currentFilter = 'all';
+    // Modal Elements
+    const editModal = document.getElementById('editModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const editTaskInput = document.getElementById('editTaskInput');
+    const editCategorySelect = document.getElementById('editCategorySelect');
+    const editPrioritySelect = document.getElementById('editPrioritySelect');
 
-  // Theme Switcher
-  themeToggleBtn.addEventListener('click', () => {
-    const body = document.body;
-    const isDark = body.getAttribute('data-theme') === 'dark';
-    body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    themeToggleBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-  });
+    let tasks = JSON.parse(localStorage.getItem('taskflow_tasks')) || [];
+    let currentFilter = 'all';
+    let editTaskId = null;
 
-  function saveTasks() {
-    localStorage.setItem('taskflow_tasks', JSON.stringify(tasks));
-  }
+    // Save Tasks to LocalStorage
+    const saveTasks = () => {
+        localStorage.setItem('taskflow_tasks', JSON.stringify(tasks));
+        updateStats();
+    };
 
-  function renderTasks() {
-    taskList.innerHTML = '';
-    const query = searchInput.value.toLowerCase().trim();
+    // Show Toast Notification
+    const showToast = (message) => {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--accent-cyan)"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    };
 
-    const filtered = tasks.filter(task => {
-      const matchFilter = 
-        currentFilter === 'all' || 
-        (currentFilter === 'completed' && task.completed) ||
-        (currentFilter === 'active' && !task.completed);
-      const matchSearch = task.text.toLowerCase().includes(query);
-      return matchFilter && matchSearch;
-    });
+    // Update Stats & Progress Bar
+    const updateStats = () => {
+        const total = tasks.length;
+        const completed = tasks.filter(t => t.completed).length;
+        const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
 
-    if (filtered.length === 0) {
-      emptyState.style.display = 'block';
-    } else {
-      emptyState.style.display = 'none';
-      filtered.forEach((task) => {
-        const actualIndex = tasks.indexOf(task);
-        const li = document.createElement('li');
-        li.className = `task-item ${task.completed ? 'completed' : ''}`;
+        progressText.innerText = `${completed} of ${total} tasks completed`;
+        percentBadge.innerText = `${percentage}%`;
+        progressBarFill.style.width = `${percentage}%`;
+    };
 
-        li.innerHTML = `
-          <div class="task-left">
-            <div class="checkbox"><i class="fa-solid fa-check"></i></div>
-            <div class="task-details">
-              <span class="task-title">${escapeHtml(task.text)}</span>
-              <div class="meta-tags">
-                <span class="tag tag-cat">${task.category}</span>
-                <span class="tag tag-${task.priority}">${task.priority}</span>
-              </div>
-            </div>
-          </div>
-          <button class="delete-btn"><i class="fa-solid fa-trash-can"></i></button>
-        `;
+    // Render Tasks
+    const renderTasks = () => {
+        const query = searchInput.value.toLowerCase();
+        tasksContainer.innerHTML = '';
 
-        li.querySelector('.task-left').addEventListener('click', () => {
-          tasks[actualIndex].completed = !tasks[actualIndex].completed;
-          saveTasks();
-          renderTasks();
+        let filteredTasks = tasks.filter(task => {
+            const matchesSearch = task.text.toLowerCase().includes(query);
+            if (currentFilter === 'active') return matchesSearch && !task.completed;
+            if (currentFilter === 'completed') return matchesSearch && task.completed;
+            return matchesSearch;
         });
 
-        li.querySelector('.delete-btn').addEventListener('click', (e) => {
-          e.stopPropagation();
-          tasks.splice(actualIndex, 1);
-          saveTasks();
-          renderTasks();
+        if (filteredTasks.length === 0) {
+            tasksContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <p>No tasks found. Enjoy your day!</p>
+                </div>
+            `;
+            return;
+        }
+
+        filteredTasks.forEach(task => {
+            const item = document.createElement('div');
+            item.className = `task-item ${task.completed ? 'completed' : ''}`;
+            item.innerHTML = `
+                <div class="task-left">
+                    <div class="custom-checkbox" onclick="toggleTask('${task.id}')">
+                        ${task.completed ? '<i class="fa-solid fa-check"></i>' : ''}
+                    </div>
+                    <div class="task-info">
+                        <span class="task-text">${escapeHTML(task.text)}</span>
+                        <div class="task-tags">
+                            <span class="tag tag-category">${task.category}</span>
+                            <span class="tag tag-priority ${task.priority}">${task.priority}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <button class="action-btn" onclick="openEditModal('${task.id}')" title="Edit Task">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="action-btn delete-btn" onclick="deleteTask('${task.id}')" title="Delete Task">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `;
+            tasksContainer.appendChild(item);
         });
+    };
 
-        taskList.appendChild(li);
-      });
-    }
+    // Utility: Prevent XSS Attacks
+    const escapeHTML = (str) => {
+        return str.replace(/[&<>'"]/g, 
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
+    };
 
-    // Update Progress Bar
-    const total = tasks.length;
-    const completed = tasks.filter(t => t.completed).length;
-    const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
-    progressBar.style.width = `${pct}%`;
-    progressPercent.textContent = `${pct}% Completed (${completed}/${total})`;
-  }
+    // Add Task
+    todoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = taskInput.value.trim();
+        if (!text) return;
 
-  function addTask() {
-    const text = taskInput.value.trim();
-    if (!text) return;
+        const newTask = {
+            id: Date.now().toString(),
+            text,
+            category: categorySelect.value,
+            priority: prioritySelect.value,
+            completed: false
+        };
 
-    tasks.push({
-      text,
-      category: categorySelect.value,
-      priority: prioritySelect.value,
-      completed: false
+        tasks.unshift(newTask);
+        saveTasks();
+        renderTasks();
+        taskInput.value = '';
+        showToast('Task added successfully!');
     });
 
-    saveTasks();
+    // Toggle Complete Status
+    window.toggleTask = (id) => {
+        tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+        saveTasks();
+        renderTasks();
+    };
+
+    // Delete Task
+    window.deleteTask = (id) => {
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasks();
+        renderTasks();
+        showToast('Task deleted');
+    };
+
+    // Open Edit Modal
+    window.openEditModal = (id) => {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+
+        editTaskId = id;
+        editTaskInput.value = task.text;
+        editCategorySelect.value = task.category;
+        editPrioritySelect.value = task.priority;
+        editModal.classList.add('active');
+    };
+
+    // Close Modal
+    const closeModal = () => {
+        editModal.classList.remove('active');
+        editTaskId = null;
+    };
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelEditBtn.addEventListener('click', closeModal);
+
+    // Save Edit
+    saveEditBtn.addEventListener('click', () => {
+        const updatedText = editTaskInput.value.trim();
+        if (!updatedText) return;
+
+        tasks = tasks.map(t => t.id === editTaskId ? {
+            ...t,
+            text: updatedText,
+            category: editCategorySelect.value,
+            priority: editPrioritySelect.value
+        } : t);
+
+        saveTasks();
+        renderTasks();
+        closeModal();
+        showToast('Task updated!');
+    });
+
+    // Filter Tabs
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            renderTasks();
+        });
+    });
+
+    // Search Input
+    searchInput.addEventListener('input', renderTasks);
+
+    // Initial Load
+    updateStats();
     renderTasks();
-    taskInput.value = '';
-    taskInput.focus();
-  }
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.innerText = str;
-    return div.innerHTML;
-  }
-
-  addBtn.addEventListener('click', addTask);
-  taskInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addTask();
-  });
-  searchInput.addEventListener('input', renderTasks);
-
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentFilter = btn.getAttribute('data-filter');
-      renderTasks();
-    });
-  });
-
-  renderTasks();
 });
