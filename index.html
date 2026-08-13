@@ -1,90 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TaskFlow Pro — Task Manager</title>
-
-  <!-- External Icons & Fonts -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Link External CSS -->
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow Pro | Modern Task Management</title>
+    
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
 </head>
-<body data-theme="dark">
+<body>
 
-  <div class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="brand">
-        <div class="brand-icon"><i class="fa-solid fa-list-check"></i></div>
-        <h2>TaskFlow Pro</h2>
-      </div>
-      <button id="themeToggleBtn" class="icon-btn" title="Toggle Theme">
-        <i class="fa-solid fa-moon"></i>
-      </button>
-    </header>
+    <!-- Background Glow Blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
 
-    <!-- Progress Card -->
-    <div class="card progress-card">
-      <div class="progress-info">
-        <span>Completion Progress</span>
-        <span id="progressPercent">0% Completed</span>
-      </div>
-      <div class="progress-track">
-        <div id="progressBar" class="progress-fill"></div>
-      </div>
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div>
+                    <h1>TaskFlow <span>Pro</span></h1>
+                    <p>Elevate your productivity</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button id="themeToggleBtn" class="icon-btn" title="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Progress Stats Card -->
+        <div class="glass-card stats-card">
+            <div class="stats-header">
+                <div>
+                    <h3>Task Progress</h3>
+                    <p id="progressText">0 of 0 tasks completed</p>
+                </div>
+                <div class="percent-badge" id="percentBadge">0%</div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="glass-card input-card">
+            <form id="todoForm">
+                <div class="input-group">
+                    <i class="fa-solid fa-plus input-icon"></i>
+                    <input type="text" id="taskInput" placeholder="What needs to be done?" autocomplete="off" required>
+                    <button type="submit" class="btn btn-primary">
+                        <span>Add Task</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="meta-inputs">
+                    <div class="select-wrapper">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <select id="categorySelect">
+                            <option value="Work">Work</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Study">Study</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                    </div>
+
+                    <div class="select-wrapper">
+                        <i class="fa-solid fa-flag"></i>
+                        <select id="prioritySelect">
+                            <option value="Low">Low Priority</option>
+                            <option value="Medium" selected>Medium Priority</option>
+                            <option value="High">High Priority</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Controls (Search & Filters) -->
+        <div class="controls-section">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search tasks...">
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="active">Active</button>
+                <button class="filter-btn" data-filter="completed">Completed</button>
+            </div>
+        </div>
+
+        <!-- Tasks List Container -->
+        <div class="tasks-container" id="tasksContainer">
+            <!-- Dynamic tasks render here -->
+        </div>
+
     </div>
 
-    <!-- Task Input Form -->
-    <div class="card form-card">
-      <div class="input-row">
-        <input type="text" id="taskInput" placeholder="Add a new task..." autocomplete="off">
-        <button id="addBtn" class="btn-primary">
-          <i class="fa-solid fa-plus"></i> Add
-        </button>
-      </div>
-      <div class="options-row">
-        <select id="categorySelect" class="select-input">
-          <option value="Work">💼 Work</option>
-          <option value="Personal">👤 Personal</option>
-          <option value="Urgent">🔥 Urgent</option>
-        </select>
-        <select id="prioritySelect" class="select-input">
-          <option value="low">🟢 Low Priority</option>
-          <option value="medium" selected>🟡 Medium Priority</option>
-          <option value="high">🔴 High Priority</option>
-        </select>
-      </div>
+    <!-- Edit Task Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="glass-card modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-pen-to-square"></i> Edit Task</h3>
+                <button class="close-btn" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="editTaskInput" class="modal-input">
+                <div class="meta-inputs mt-3">
+                    <div class="select-wrapper">
+                        <select id="editCategorySelect">
+                            <option value="Work">Work</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Study">Study</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="select-wrapper">
+                        <select id="editPrioritySelect">
+                            <option value="Low">Low Priority</option>
+                            <option value="Medium">Medium Priority</option>
+                            <option value="High">High Priority</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveEditBtn">Save Changes</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Search & Filters Toolbar -->
-    <div class="toolbar">
-      <div class="search-box">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="searchInput" placeholder="Search tasks...">
-      </div>
-      <div class="filter-tabs">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="active">Active</button>
-        <button class="filter-btn" data-filter="completed">Done</button>
-      </div>
-    </div>
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Task List -->
-    <ul id="taskList" class="task-list"></ul>
-
-    <!-- Empty State Message -->
-    <div id="emptyState" class="empty-state">
-      <i class="fa-solid fa-clipboard-check"></i>
-      <p>No tasks found. Add a task to get started!</p>
-    </div>
-  </div>
-
-  <!-- Link External JavaScript -->
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
