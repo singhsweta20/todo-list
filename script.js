@@ -1,191 +1,133 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
-    const todoForm = document.getElementById('todoForm');
+    const taskForm = document.getElementById('taskForm');
     const taskInput = document.getElementById('taskInput');
-    const categorySelect = document.getElementById('categorySelect');
-    const prioritySelect = document.getElementById('prioritySelect');
-    const tasksContainer = document.getElementById('tasksContainer');
+    const taskCategory = document.getElementById('taskCategory');
+    const taskPriority = document.getElementById('taskPriority');
+    const taskList = document.getElementById('taskList');
+    const emptyState = document.getElementById('emptyState');
     const searchInput = document.getElementById('searchInput');
     const filterBtns = document.querySelectorAll('.filter-btn');
+    const clearCompletedBtn = document.getElementById('clearCompletedBtn');
     
-    // Stats Elements
+    const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
-    const percentBadge = document.getElementById('percentBadge');
-    const progressBarFill = document.getElementById('progressBarFill');
+    const progressPercentage = document.getElementById('progressPercentage');
 
-    // Modal Elements
-    const editModal = document.getElementById('editModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const cancelEditBtn = document.getElementById('cancelEditBtn');
-    const saveEditBtn = document.getElementById('saveEditBtn');
-    const editTaskInput = document.getElementById('editTaskInput');
-    const editCategorySelect = document.getElementById('editCategorySelect');
-    const editPrioritySelect = document.getElementById('editPrioritySelect');
-
-    let tasks = JSON.parse(localStorage.getItem('taskflow_tasks')) || [];
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     let currentFilter = 'all';
-    let editTaskId = null;
 
-    // Save Tasks to LocalStorage
-    const saveTasks = () => {
-        localStorage.setItem('taskflow_tasks', JSON.stringify(tasks));
-        updateStats();
-    };
+    function saveTasks() {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        updateProgress();
+    }
 
-    // Show Toast Notification
-    const showToast = (message) => {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--accent-cyan)"></i> ${message}`;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    };
-
-    // Update Stats & Progress Bar
-    const updateStats = () => {
+    function updateProgress() {
         const total = tasks.length;
         const completed = tasks.filter(t => t.completed).length;
-        const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
+        const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
-        progressText.innerText = `${completed} of ${total} tasks completed`;
-        percentBadge.innerText = `${percentage}%`;
-        progressBarFill.style.width = `${percentage}%`;
-    };
+        progressBar.style.width = `${percent}%`;
+        progressPercentage.textContent = `${percent}%`;
+        progressText.textContent = `${completed} of ${total} tasks completed`;
+    }
 
-    // Render Tasks
-    const renderTasks = () => {
-        const query = searchInput.value.toLowerCase();
-        tasksContainer.innerHTML = '';
+    function renderTasks() {
+        taskList.innerHTML = '';
+        const searchVal = searchInput.value.toLowerCase();
 
-        let filteredTasks = tasks.filter(task => {
-            const matchesSearch = task.text.toLowerCase().includes(query);
-            if (currentFilter === 'active') return matchesSearch && !task.completed;
-            if (currentFilter === 'completed') return matchesSearch && task.completed;
-            return matchesSearch;
+        const filtered = tasks.filter(task => {
+            const matchesFilter = 
+                currentFilter === 'all' ? true :
+                currentFilter === 'active' ? !task.completed : task.completed;
+            const matchesSearch = task.title.toLowerCase().includes(searchVal);
+            return matchesFilter && matchesSearch;
         });
 
-        if (filteredTasks.length === 0) {
-            tasksContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fa-solid fa-clipboard-list"></i>
-                    <p>No tasks found. Enjoy your day!</p>
-                </div>
-            `;
-            return;
+        if (filtered.length === 0) {
+            emptyState.classList.remove('hidden');
+            emptyState.classList.add('flex');
+        } else {
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
         }
 
-        filteredTasks.forEach(task => {
-            const item = document.createElement('div');
-            item.className = `task-item ${task.completed ? 'completed' : ''}`;
-            item.innerHTML = `
-                <div class="task-left">
-                    <div class="custom-checkbox" onclick="toggleTask('${task.id}')">
-                        ${task.completed ? '<i class="fa-solid fa-check"></i>' : ''}
-                    </div>
-                    <div class="task-info">
-                        <span class="task-text">${escapeHTML(task.text)}</span>
-                        <div class="task-tags">
-                            <span class="tag tag-category">${task.category}</span>
-                            <span class="tag tag-priority ${task.priority}">${task.priority}</span>
+        filtered.forEach(task => {
+            const li = document.createElement('li');
+            li.className = `bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-3 shadow-md hover:border-slate-700 transition-all ${task.completed ? 'opacity-70' : ''}`;
+
+            const priorityColors = {
+                Low: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                Medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                High: 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+            };
+
+            li.innerHTML = `
+                <div class="flex items-center gap-3 flex-1">
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} class="w-4 h-4 rounded border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer">
+                    <div class="flex flex-col">
+                        <span class="text-sm text-slate-200 ${task.completed ? 'completed-text' : ''}">${escapeHtml(task.title)}</span>
+                        <div class="flex gap-2 mt-1">
+                            <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/50">${task.category}</span>
+                            <span class="text-[10px] font-medium px-2 py-0.5 rounded border ${priorityColors[task.priority]}">${task.priority}</span>
                         </div>
                     </div>
                 </div>
-                <div class="task-actions">
-                    <button class="action-btn" onclick="openEditModal('${task.id}')" title="Edit Task">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button class="action-btn delete-btn" onclick="deleteTask('${task.id}')" title="Delete Task">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
+                <button class="delete-btn text-slate-500 hover:text-rose-400 p-1.5 rounded-lg transition-colors">
+                    <i class="fa-regular fa-trash-can text-sm"></i>
+                </button>
             `;
-            tasksContainer.appendChild(item);
+
+            // Checkbox event
+            const checkbox = li.querySelector('input[type="checkbox"]');
+            checkbox.addEventListener('change', () => {
+                task.completed = checkbox.checked;
+                if (task.completed && typeof confetti === 'function') {
+                    confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
+                }
+                saveTasks();
+                renderTasks();
+            });
+
+            // Delete button event
+            const deleteBtn = li.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', () => {
+                tasks = tasks.filter(t => t.id !== task.id);
+                saveTasks();
+                renderTasks();
+            });
+
+            taskList.appendChild(li);
         });
-    };
 
-    // Utility: Prevent XSS Attacks
-    const escapeHTML = (str) => {
-        return str.replace(/[&<>'"]/g, 
-            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-        );
-    };
+        updateProgress();
+    }
 
-    // Add Task
-    todoForm.addEventListener('submit', (e) => {
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Add Task Handler
+    taskForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const text = taskInput.value.trim();
-        if (!text) return;
+        const title = taskInput.value.trim();
+        if (!title) return;
 
-        const newTask = {
-            id: Date.now().toString(),
-            text,
-            category: categorySelect.value,
-            priority: prioritySelect.value,
+        tasks.unshift({
+            id: Date.now(),
+            title,
+            category: taskCategory.value,
+            priority: taskPriority.value,
             completed: false
-        };
+        });
 
-        tasks.unshift(newTask);
-        saveTasks();
-        renderTasks();
         taskInput.value = '';
-        showToast('Task added successfully!');
+        saveTasks();
+        renderTasks();
     });
 
-    // Toggle Complete Status
-    window.toggleTask = (id) => {
-        tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
-        saveTasks();
-        renderTasks();
-    };
-
-    // Delete Task
-    window.deleteTask = (id) => {
-        tasks = tasks.filter(t => t.id !== id);
-        saveTasks();
-        renderTasks();
-        showToast('Task deleted');
-    };
-
-    // Open Edit Modal
-    window.openEditModal = (id) => {
-        const task = tasks.find(t => t.id === id);
-        if (!task) return;
-
-        editTaskId = id;
-        editTaskInput.value = task.text;
-        editCategorySelect.value = task.category;
-        editPrioritySelect.value = task.priority;
-        editModal.classList.add('active');
-    };
-
-    // Close Modal
-    const closeModal = () => {
-        editModal.classList.remove('active');
-        editTaskId = null;
-    };
-    closeModalBtn.addEventListener('click', closeModal);
-    cancelEditBtn.addEventListener('click', closeModal);
-
-    // Save Edit
-    saveEditBtn.addEventListener('click', () => {
-        const updatedText = editTaskInput.value.trim();
-        if (!updatedText) return;
-
-        tasks = tasks.map(t => t.id === editTaskId ? {
-            ...t,
-            text: updatedText,
-            category: editCategorySelect.value,
-            priority: editPrioritySelect.value
-        } : t);
-
-        saveTasks();
-        renderTasks();
-        closeModal();
-        showToast('Task updated!');
-    });
-
-    // Filter Tabs
+    // Filter Buttons logic
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('active'));
@@ -195,10 +137,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Search Input
+    // Search input logic
     searchInput.addEventListener('input', renderTasks);
 
-    // Initial Load
-    updateStats();
+    // Clear completed tasks logic
+    clearCompletedBtn.addEventListener('click', () => {
+        tasks = tasks.filter(t => !t.completed);
+        saveTasks();
+        renderTasks();
+    });
+
+    // Initial render
     renderTasks();
 });
