@@ -3,149 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow Pro | Modern Task Management</title>
-    
-    <!-- Google Fonts & Font Awesome Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>TaskFlow Pro | Modern Task Manager</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <!-- Confetti JS for Task Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="bg-[#0f172a] text-slate-200 min-h-screen font-sans flex flex-col items-center py-10 px-4">
 
-    <!-- Background Glow Blobs -->
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-
-    <div class="app-container">
-        
-        <!-- Header -->
-        <header class="app-header">
-            <div class="brand">
-                <div class="brand-icon">
-                    <i class="fa-solid fa-bolt"></i>
-                </div>
-                <div>
-                    <h1>TaskFlow <span>Pro</span></h1>
-                    <p>Elevate your productivity</p>
-                </div>
+    <!-- Header -->
+    <header class="w-full max-w-2xl flex items-center justify-between mb-8">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500 flex items-center justify-center text-slate-900 text-xl font-bold shadow-lg shadow-cyan-500/30">
+                <i class="fa-solid font-bold fa-bolt"></i>
             </div>
-            
-            <div class="header-actions">
-                <button id="themeToggleBtn" class="icon-btn" title="Toggle Theme">
-                    <i class="fa-solid fa-moon"></i>
+            <div>
+                <h1 class="text-2xl font-extrabold text-white tracking-wide">TaskFlow <span class="text-cyan-400">Pro</span></h1>
+                <p class="text-xs text-slate-400">Elevate your productivity</p>
+            </div>
+        </div>
+        <button id="clearCompletedBtn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:border-red-500/50 hover:text-red-400 transition-all">
+            <i class="fa-solid fa-trash-can mr-1"></i> Clear Completed
+        </button>
+    </header>
+
+    <main class="w-full max-w-2xl space-y-6">
+        
+        <!-- Progress Bar Card -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-md shadow-xl">
+            <div class="flex justify-between items-center mb-2">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300">Task Progress</h3>
+                    <p id="progressText" class="text-xs text-slate-400">0 of 0 tasks completed</p>
+                </div>
+                <span id="progressPercentage" class="text-xs font-bold text-cyan-400 bg-cyan-400/10 px-2.5 py-1 rounded-full border border-cyan-400/20">0%</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                <div id="progressBar" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-0 transition-all duration-500 ease-out"></div>
+            </div>
+        </div>
+
+        <!-- Add Task Input Form -->
+        <form id="taskForm" class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 backdrop-blur-md shadow-xl space-y-3">
+            <div class="relative">
+                <i class="fa-solid fa-plus absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input type="text" id="taskInput" placeholder="What needs to be done?" required class="w-full bg-slate-950/50 text-slate-100 placeholder-slate-500 text-sm rounded-xl pl-10 pr-28 py-3 border border-slate-800 focus:outline-none focus:border-cyan-500/50 transition-all">
+                <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-1 shadow-md shadow-cyan-500/20">
+                    Add Task <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </button>
             </div>
-        </header>
+            
+            <div class="flex flex-wrap gap-3">
+                <select id="taskCategory" class="bg-slate-950/50 text-slate-300 text-xs rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-cyan-500/50">
+                    <option value="Work">📁 Work</option>
+                    <option value="Study">📚 Study</option>
+                    <option value="Personal">👤 Personal</option>
+                </select>
 
-        <!-- Progress Stats Card -->
-        <div class="glass-card stats-card">
-            <div class="stats-header">
-                <div>
-                    <h3>Task Progress</h3>
-                    <p id="progressText">0 of 0 tasks completed</p>
-                </div>
-                <div class="percent-badge" id="percentBadge">0%</div>
+                <select id="taskPriority" class="bg-slate-950/50 text-slate-300 text-xs rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-cyan-500/50">
+                    <option value="Low">🚩 Low Priority</option>
+                    <option value="Medium" selected>🚩 Medium Priority</option>
+                    <option value="High">🚩 High Priority</option>
+                </select>
             </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar-fill" id="progressBarFill"></div>
-            </div>
-        </div>
+        </form>
 
-        <!-- Input Section -->
-        <div class="glass-card input-card">
-            <form id="todoForm">
-                <div class="input-group">
-                    <i class="fa-solid fa-plus input-icon"></i>
-                    <input type="text" id="taskInput" placeholder="What needs to be done?" autocomplete="off" required>
-                    <button type="submit" class="btn btn-primary">
-                        <span>Add Task</span>
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
-
-                <div class="meta-inputs">
-                    <div class="select-wrapper">
-                        <i class="fa-solid fa-folder-open"></i>
-                        <select id="categorySelect">
-                            <option value="Work">Work</option>
-                            <option value="Personal">Personal</option>
-                            <option value="Study">Study</option>
-                            <option value="Urgent">Urgent</option>
-                        </select>
-                    </div>
-
-                    <div class="select-wrapper">
-                        <i class="fa-solid fa-flag"></i>
-                        <select id="prioritySelect">
-                            <option value="Low">Low Priority</option>
-                            <option value="Medium" selected>Medium Priority</option>
-                            <option value="High">High Priority</option>
-                        </select>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- Controls (Search & Filters) -->
-        <div class="controls-section">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="searchInput" placeholder="Search tasks...">
+        <!-- Search & Filter Controls -->
+        <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+            <div class="relative w-full sm:w-auto flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <input type="text" id="searchInput" placeholder="Search tasks..." class="w-full bg-slate-900/40 text-slate-200 text-xs rounded-xl pl-9 pr-4 py-2.5 border border-slate-800 focus:outline-none focus:border-cyan-500/30">
             </div>
 
-            <div class="filter-tabs">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="active">Active</button>
-                <button class="filter-btn" data-filter="completed">Completed</button>
+            <div class="flex bg-slate-900/60 p-1 rounded-xl border border-slate-800 w-full sm:w-auto justify-center">
+                <button data-filter="all" class="filter-btn active text-xs px-3 py-1.5 rounded-lg text-slate-300 transition-all">All</button>
+                <button data-filter="active" class="filter-btn text-xs px-3 py-1.5 rounded-lg text-slate-400 transition-all">Active</button>
+                <button data-filter="completed" class="filter-btn text-xs px-3 py-1.5 rounded-lg text-slate-400 transition-all">Completed</button>
             </div>
         </div>
 
-        <!-- Tasks List Container -->
-        <div class="tasks-container" id="tasksContainer">
-            <!-- Dynamic tasks render here -->
+        <!-- Task List Container -->
+        <ul id="taskList" class="space-y-3"></ul>
+
+        <!-- Empty State Graphic -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-12 text-center border-2 border-dashed border-slate-800/80 rounded-2xl">
+            <div class="w-12 h-12 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-600 mb-3">
+                <i class="fa-regular fa-folder-open text-xl"></i>
+            </div>
+            <p class="text-slate-400 text-sm font-medium">No tasks found</p>
+            <p class="text-slate-600 text-xs mt-1">Add a new task above or clear your filters.</p>
         </div>
 
-    </div>
-
-    <!-- Edit Task Modal -->
-    <div class="modal-overlay" id="editModal">
-        <div class="glass-card modal-content">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-pen-to-square"></i> Edit Task</h3>
-                <button class="close-btn" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="editTaskInput" class="modal-input">
-                <div class="meta-inputs mt-3">
-                    <div class="select-wrapper">
-                        <select id="editCategorySelect">
-                            <option value="Work">Work</option>
-                            <option value="Personal">Personal</option>
-                            <option value="Study">Study</option>
-                            <option value="Urgent">Urgent</option>
-                        </select>
-                    </div>
-                    <div class="select-wrapper">
-                        <select id="editPrioritySelect">
-                            <option value="Low">Low Priority</option>
-                            <option value="Medium">Medium Priority</option>
-                            <option value="High">High Priority</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
-                <button class="btn btn-primary" id="saveEditBtn">Save Changes</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification Container -->
-    <div id="toastContainer" class="toast-container"></div>
+    </main>
 
     <script src="script.js"></script>
 </body>
